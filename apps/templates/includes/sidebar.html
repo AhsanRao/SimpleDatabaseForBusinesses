@@ -27,19 +27,19 @@
                     </a>
                     <ul class="pcoded-submenu">
                         <li class="nav-item {% if 'search-us' in segment %} active {% endif %}">
-                            <a href="/search-user" class="nav-link">
+                            <a href="{{ url_for('authentication_blueprint.search_user') }}" class="nav-link">
                                 <span class="pcoded-micon"><i class="feather icon-user"></i></span>
                                 <span class="pcoded-mtext">Search User</span>
                             </a>
                         </li>
                         <li class="nav-item {% if 'search-eq' in segment %} active {% endif %}">
-                            <a href="/search-equipment" class="nav-link">
+                            <a href="{{ url_for('authentication_blueprint.search_equipment') }}" class="nav-link">
                                 <span class="pcoded-micon"><i class="feather icon-box"></i></span>
                                 <span class="pcoded-mtext">Search Equipment</span>
                             </a>
                         </li>
                         <li class="nav-item {% if 'search-con' in segment %} active {% endif %}">
-                            <a href="/search-contract" class="nav-link">
+                            <a href="{{ url_for('authentication_blueprint.search_contract') }}" class="nav-link">
                                 <span class="pcoded-micon"><i class="feather icon-file-text"></i></span>
                                 <span class="pcoded-mtext">Search Contract</span>
                             </a>
@@ -54,19 +54,19 @@
                     </a>
                     <ul class="pcoded-submenu">
                         <li class="nav-item {% if 'user' in segment %} active {% endif %}">
-                            <a href="/add-user" class="nav-link">
+                            <a href="{{ url_for('authentication_blueprint.add_user') }}" class="nav-link">
                                 <span class="pcoded-micon"><i class="feather icon-user-plus"></i></span>
                                 <span class="pcoded-mtext">Add User</span>
                             </a>
                         </li>
                         <li class="nav-item {% if 'equipment' in segment %} active {% endif %}">
-                            <a href="/add-equipment" class="nav-link">
+                            <a href="{{ url_for('authentication_blueprint.add_equipment') }}" class="nav-link">
                                 <span class="pcoded-micon"><i class="feather icon-box"></i></span>
                                 <span class="pcoded-mtext">Add Equipment</span>
                             </a>
                         </li>
                         <li class="nav-item {% if 'contract' in segment %} active {% endif %}">
-                            <a href="/add-contract" class="nav-link">
+                            <a href="{{ url_for('authentication_blueprint.add_contract') }}" class="nav-link">
                                 <span class="pcoded-micon"><i class="feather icon-file-text"></i></span>
                                 <span class="pcoded-mtext">Create Contract</span>
                             </a>
