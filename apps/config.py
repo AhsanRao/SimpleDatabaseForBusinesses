@@ -63,7 +63,11 @@ class Config(object):
         SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db.sqlite3')
         
     else:
+<<<<<<< HEAD
             SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:@localhost/simple'
+=======
+            SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:1234@localhost/simple'
+>>>>>>> 8e405518692d749a1f9ef01462d48ec385fe5c6a
     SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:1234@localhost/simple'
     
 class ProductionConfig(Config):
