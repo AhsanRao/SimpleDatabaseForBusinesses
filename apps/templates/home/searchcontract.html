@@ -321,7 +321,7 @@
 
                                                 </thead>
                                                 <tbody>
-                                                    {% for contract, client, equipment, address, phone in contracts %}
+                                                    {% for contract, client, equipment, client_address, client_phone, sales_executive, sales_executive_address, sales_executive_phone in contracts %}
                                                     <tr class="hidden-row">
                                                         <td>{{ contract.contract_id }}</td>
 
@@ -333,10 +333,10 @@
                                                             <a href="mailto:{{ client.email }}" target="_blank" id="title-link">{{ client.email[:20] }}...</a>
                                                         </td>
 
-                                                        <td>{{ phone.home_phone_number }} / {{ phone.business_phone_number }}</td>
+                                                        <td>{{ client_phone.home_phone_number }} / {{ client_phone.business_phone_number }}</td>
 
-                                                        <td class="description-cell" data-description="{{ address.street }}, {{ address.city }}, {{ address.state }}, {{ address.zipcode }}, {{ address.country }}">
-                                                            {% set full_address = address.street ~ ', ' ~ address.city ~ ', ' ~ address.state ~ ', ' ~ address.zipcode ~ ', ' ~ address.country %} {{ full_address[:35] }}{% if full_address|length > 35 %}...{% endif %}
+                                                        <td class="description-cell" data-description="{{ client_address.street }}, {{ client_address.city }}, {{ client_address.state }}, {{ client_address.zipcode }}, {{ client_address.country }}">
+                                                            {% set full_address = client_address.street ~ ', ' ~ client_address.city ~ ', ' ~ client_address.state ~ ', ' ~ client_address.zipcode ~ ', ' ~ client_address.country %} {{ full_address[:35] }}{% if full_address|length > 35 %}...{% endif %}
                                                         </td>
 
                                                         <td>{{ equipment.asset_tag_number }}</td>
@@ -349,9 +349,18 @@
                                                         <td>{{ contract.renewal_date }}</td>
 
 
+                                                        <td class="name-cell" data-name="{{ sales_executive.first_name + ' ' + sales_executive.last_name }}">
+                                                            {{ sales_executive.first_name + ' ' + sales_executive.last_name}}
+                                                        </td>
+                                                        <td class="description-cell" data-description="ID: {{ sales_executive.person_id }}||Name: {{ sales_executive.first_name + ' ' + sales_executive.last_name }}||Email: {{ sales_executive.email }}||Phone: {{ sales_executive_phone.home_phone_number }} / {{ sales_executive_phone.business_phone_number }}||Role: {{ sales_executive.role }}||Zipcode: {{ sales_executive_address.zipcode }}||Address: {{ sales_executive_address.street }}, {{ sales_executive_address.city }}, {{ sales_executive_address.country }}">
+                                                            {{sales_executive.person_id}}
+                                                        </td>
 
                                                         <td>
-                                                            {{ client.role}}
+                                                            {{ sales_executive.role}}
+                                                        </td>
+                                                        <td>
+                                                            {{ sales_executive.street}}
                                                         </td>
 
                                                     </tr>
@@ -449,13 +458,35 @@
     });
 
 
-    // Function to show full description in a modal
     function showDescription(fullDescription) {
+        var lines = fullDescription.split("||");
+        var formattedDescription = '<table>';
+
+        lines.forEach(function(line) {
+            var parts = line.split(":");
+            formattedDescription += '<tr>';
+
+            if (parts.length > 1) {
+                // Title in first column, value in second column
+                formattedDescription += '<td><b>' + parts[0].trim() + ':</b></td>';
+                formattedDescription += '<td>' + parts.slice(1).join(":").trim() + '</td>';
+            } else {
+                // If there is no colon, span the entire row
+                formattedDescription += '<td colspan="2">' + line.trim() + '</td>';
+            }
+
+            formattedDescription += '</tr>';
+        });
+
+        formattedDescription += '</table>';
+
         var modal = document.getElementById("descriptionModal");
-        document.getElementById("modal-text").innerHTML = fullDescription;
+        document.getElementById("modal-text").innerHTML = formattedDescription;
         updateModalBackground("descriptionModal");
         modal.style.display = "block";
     }
+
+
 
     // Function to close the modal
     function closeModal() {

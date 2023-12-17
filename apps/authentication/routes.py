@@ -563,101 +563,88 @@ def search_equipment():
         segment='search-eq'
     )
 
-# @blueprint.route('/search-contract', methods=['GET', 'POST'])
-# # @login_required
-# def search_contract():
-#     # Extract search term from the request
-#     search_term = request.form.get('search_term', '').strip()
-#     SalesPerson = aliased(Person)  # Alias for the salesperson
-
-#     if request.method == 'POST':
-#         if search_term:
-#             search_filter = or_(
-#                 Person.first_name.ilike(f"%{search_term}%"),
-#                 Person.last_name.ilike(f"%{search_term}%"),
-#                 Person.email.ilike(f"%{search_term}%"),
-#                 Person.role.ilike(f"%{search_term}%"),
-#                 Person.gender.ilike(f"%{search_term}%"),
-#                 SalesPerson.first_name.ilike(f"%{search_term}%"),  # Searching salesperson's name
-#                 SalesPerson.last_name.ilike(f"%{search_term}%"),
-#                 SalesPerson.role.ilike(f"%{search_term}%"),
-#                 Address.street.ilike(f"%{search_term}%"),
-#                 Address.city.ilike(f"%{search_term}%"),
-#                 Address.state.ilike(f"%{search_term}%"),
-#                 Address.zipcode.ilike(f"%{search_term}%"),
-#                 Address.country.ilike(f"%{search_term}%"),
-#                 PhoneNumber.home_phone_number.ilike(f"%{search_term}%"),
-#                 PhoneNumber.business_phone_number.ilike(f"%{search_term}%"),
-#                 Equipment.asset_tag_number.ilike(f"%{search_term}%"),
-#                 Equipment.equipment_name.ilike(f"%{search_term}%"),
-#                 Equipment.serial_number.ilike(f"%{search_term}%"),
-#                 Equipment.install_date.ilike(f"%{search_term}%"),
-#                 Contract.contract_id.ilike(f"%{search_term}%"),
-#                 Contract.installation_date.ilike(f"%{search_term}%"),
-#                 Contract.billing_date.ilike(f"%{search_term}%"),
-#                 Contract.renewal_date.ilike(f"%{search_term}%"),
-#                 Contract.role.ilike(f"%{search_term}%")
-
-#             )
-#             contracts = db.session.query(Contract, Person, Equipment, SalesPerson)\
-#                 .join(Person, Contract.person_id == Person.person_id)\
-#                 .join(SalesPerson, Contract.person_id_id == SalesPerson.person_id)\
-#                 .join(ContractEquipment, ContractEquipment.contract_id == Contract.contract_id)\
-#                 .join(Equipment, ContractEquipment.equipment_id == Equipment.equipment_id)\
-#                 .filter(search_filter)\
-#                 .all()
-#         else:
-#             contracts = db.session.query(Contract, Person, Equipment, SalesPerson)\
-#                 .join(Person, Contract.person_id == Person.person_id)\
-#                 .join(SalesPerson, Contract.person_id == SalesPerson.person_id)\
-#                 .join(ContractEquipment, ContractEquipment.contract_id == Contract.contract_id)\
-#                 .join(Equipment, ContractEquipment.equipment_id == Equipment.equipment_id)\
-#                 .all()
-#     else:
-#         contracts = db.session.query(Contract, Person, Equipment, SalesPerson)\
-#                 .join(Person, Contract.person_id == Person.person_id)\
-#                 .join(SalesPerson, Contract.person_id == SalesPerson.person_id)\
-#                 .join(ContractEquipment, ContractEquipment.contract_id == Contract.contract_id)\
-#                 .join(Equipment, ContractEquipment.equipment_id == Equipment.equipment_id)\
-#                 .all()
-
-#     return render_template(
-#         'home/searchcontract.html',
-#         contracts=contracts,
-#         segment='search-con'
-#     )
 
 @blueprint.route('/search-contract', methods=['GET', 'POST'])
 # @login_required
 def search_contract():
-    # Extract search term from the request
     search_term = request.form.get('search_term', '').strip()
 
-    # Alias for the client
+    # Aliases for the client and sales executive
     Client = aliased(Person)
+    SalesExecutive = aliased(Person)
     ClientAddress = aliased(Address)
     ClientPhoneNumber = aliased(PhoneNumber)
+    SalesExecutiveAddress = aliased(Address)
+    SalesExecutivePhoneNumber = aliased(PhoneNumber)
 
     if request.method == 'POST' and search_term:
+        # Define search filter
         search_filter = or_(
-            # Add search filters for Client, Equipment, Contract, etc.
+            # Client Details
+            Client.first_name.ilike(f"%{search_term}%"),
+            Client.last_name.ilike(f"%{search_term}%"),
+            Client.email.ilike(f"%{search_term}%"),
+            Client.role.ilike(f"%{search_term}%"),
+            Client.gender.ilike(f"%{search_term}%"),
+
+            # Sales Executive Details
+            SalesExecutive.first_name.ilike(f"%{search_term}%"),
+            SalesExecutive.last_name.ilike(f"%{search_term}%"),
+            SalesExecutive.email.ilike(f"%{search_term}%"),
+            SalesExecutive.role.ilike(f"%{search_term}%"),
+
+            # Address Details (both Client and Sales Executive)
+            ClientAddress.street.ilike(f"%{search_term}%"),
+            ClientAddress.city.ilike(f"%{search_term}%"),
+            ClientAddress.state.ilike(f"%{search_term}%"),
+            ClientAddress.zipcode.ilike(f"%{search_term}%"),
+            ClientAddress.country.ilike(f"%{search_term}%"),
+            SalesExecutiveAddress.street.ilike(f"%{search_term}%"),
+            SalesExecutiveAddress.city.ilike(f"%{search_term}%"),
+            SalesExecutiveAddress.state.ilike(f"%{search_term}%"),
+            SalesExecutiveAddress.zipcode.ilike(f"%{search_term}%"),
+            SalesExecutiveAddress.country.ilike(f"%{search_term}%"),
+
+            # Phone Number Details (both Client and Sales Executive)
+            ClientPhoneNumber.home_phone_number.ilike(f"%{search_term}%"),
+            ClientPhoneNumber.business_phone_number.ilike(f"%{search_term}%"),
+            SalesExecutivePhoneNumber.home_phone_number.ilike(f"%{search_term}%"),
+            SalesExecutivePhoneNumber.business_phone_number.ilike(f"%{search_term}%"),
+
+            # Equipment Details
+            Equipment.asset_tag_number.ilike(f"%{search_term}%"),
+            Equipment.equipment_name.ilike(f"%{search_term}%"),
+            Equipment.serial_number.ilike(f"%{search_term}%"),
+
+            # Contract Details
+            Contract.contract_id.ilike(f"%{search_term}%"),
+            Contract.installation_date.ilike(f"%{search_term}%"),
+            Contract.billing_date.ilike(f"%{search_term}%"),
+            Contract.renewal_date.ilike(f"%{search_term}%"),
+            Contract.monthly_charges.ilike(f"%{search_term}%")
         )
 
-        contracts = db.session.query(Contract, Client, Equipment, ClientAddress, ClientPhoneNumber)\
+        contracts = db.session.query(Contract, Client, Equipment, ClientAddress, ClientPhoneNumber, SalesExecutive, SalesExecutiveAddress, SalesExecutivePhoneNumber)\
             .join(ContractEquipment, Contract.contract_id == ContractEquipment.contract_id)\
             .join(Client, ContractEquipment.person_id == Client.person_id)\
+            .join(SalesExecutive, Contract.person_id == SalesExecutive.person_id)\
             .join(Equipment, ContractEquipment.equipment_id == Equipment.equipment_id)\
             .outerjoin(ClientAddress, Client.person_id == ClientAddress.person_id)\
             .outerjoin(ClientPhoneNumber, Client.person_id == ClientPhoneNumber.person_id)\
+            .outerjoin(SalesExecutiveAddress, SalesExecutive.person_id == SalesExecutiveAddress.person_id)\
+            .outerjoin(SalesExecutivePhoneNumber, SalesExecutive.person_id == SalesExecutivePhoneNumber.person_id)\
             .filter(search_filter)\
             .all()
     else:
-        contracts = db.session.query(Contract, Client, Equipment, ClientAddress, ClientPhoneNumber)\
+        contracts = db.session.query(Contract, Client, Equipment, ClientAddress, ClientPhoneNumber, SalesExecutive, SalesExecutiveAddress, SalesExecutivePhoneNumber)\
             .join(ContractEquipment, Contract.contract_id == ContractEquipment.contract_id)\
             .join(Client, ContractEquipment.person_id == Client.person_id)\
+            .join(SalesExecutive, Contract.person_id == SalesExecutive.person_id)\
             .join(Equipment, ContractEquipment.equipment_id == Equipment.equipment_id)\
             .outerjoin(ClientAddress, Client.person_id == ClientAddress.person_id)\
             .outerjoin(ClientPhoneNumber, Client.person_id == ClientPhoneNumber.person_id)\
+            .outerjoin(SalesExecutiveAddress, SalesExecutive.person_id == SalesExecutiveAddress.person_id)\
+            .outerjoin(SalesExecutivePhoneNumber, SalesExecutive.person_id == SalesExecutivePhoneNumber.person_id)\
             .all()
 
     return render_template(
@@ -665,6 +652,7 @@ def search_contract():
         contracts=contracts,
         segment='search-con'
     )
+
 
 
 @blueprint.route('/exportauction', methods=['POST'])

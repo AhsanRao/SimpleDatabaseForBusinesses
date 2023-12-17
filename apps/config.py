@@ -64,7 +64,7 @@ class Config(object):
         
     else:
             SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:@localhost/simple'
-    SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:@localhost/simple'
+    SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:1234@localhost/simple'
     
 class ProductionConfig(Config):
     DEBUG = False
