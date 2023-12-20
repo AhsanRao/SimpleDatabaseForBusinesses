@@ -1,85 +1,54 @@
-import os, random, string
+import os
 
-class Config(object):
+from flask import Flask
+from flask_login import LoginManager
+from flask_sqlalchemy import SQLAlchemy
+from importlib import import_module
 
-    basedir = os.path.abspath(os.path.dirname(__file__))
 
-    # Assets Management
-    ASSETS_ROOT = os.getenv('ASSETS_ROOT', '/static/assets')  
-    
-    SQLALCHEMY_POOL_TIMEOUT = int(os.getenv('SQLALCHEMY_POOL_TIMEOUT', 30))  # For example, 30 seconds.
-    SQLALCHEMY_POOL_SIZE = int(os.getenv('SQLALCHEMY_POOL_SIZE', 50))  # Adjust as n
-    
-    # Set up the App SECRET_KEY
-    SECRET_KEY  = os.getenv('SECRET_KEY', None)
-    if not SECRET_KEY:
-        SECRET_KEY = ''.join(random.choice( string.ascii_lowercase  ) for i in range( 32 ))
+db = SQLAlchemy()
+login_manager = LoginManager()
 
-    # Social AUTH context
-    SOCIAL_AUTH_GITHUB  = False
 
-    GITHUB_ID      = os.getenv('GITHUB_ID'    , None)
-    GITHUB_SECRET  = os.getenv('GITHUB_SECRET', None)
+def register_extensions(app):
+    db.init_app(app)
+    login_manager.init_app(app)
 
-    # Enable/Disable Github Social Login    
-    if GITHUB_ID and GITHUB_SECRET:
-         SOCIAL_AUTH_GITHUB  = True        
 
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+def register_blueprints(app):
+    for module_name in ('authentication', 'home'):
+        module = import_module('apps.{}.routes'.format(module_name))
+        app.register_blueprint(module.blueprint)
 
-    DB_ENGINE   = os.getenv('DB_ENGINE'   , None)
-    DB_USERNAME = os.getenv('DB_USERNAME' , None)
-    DB_PASS     = os.getenv('DB_PASS'     , None)
-    DB_HOST     = os.getenv('DB_HOST'     , None)
-    DB_PORT     = os.getenv('DB_PORT'     , None)
-    DB_NAME     = os.getenv('DB_NAME'     , None)
 
-    USE_SQLITE  = True 
+def configure_database(app):
 
-    # try to set up a Relational DBMS
-    if DB_ENGINE and DB_NAME and DB_USERNAME:
-
+    @app.before_first_request
+    def initialize_database():
         try:
-            
-            # Relational DBMS: PSQL, MySql
-            SQLALCHEMY_DATABASE_URI = '{}://{}:{}@{}:{}/{}'.format(
-                DB_ENGINE,
-                DB_USERNAME,
-                DB_PASS,
-                DB_HOST,
-                DB_PORT,
-                DB_NAME
-            ) 
-
-            USE_SQLITE  = False
-
+            db.create_all()
         except Exception as e:
 
             print('> Error: DBMS Exception: ' + str(e) )
-            print('> Fallback to SQLite ')    
 
-    if USE_SQLITE:
-        # This will create a file in <app> FOLDER
-        SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db.sqlite3')
-        
-    else:
-            SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:@localhost/simple'
-    SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://root:1234@localhost/simple'
-    
-class ProductionConfig(Config):
-    DEBUG = False
+            # fallback to SQLite
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db.sqlite3')
 
-    # Security
-    SESSION_COOKIE_HTTPONLY = True
-    REMEMBER_COOKIE_HTTPONLY = True
-    REMEMBER_COOKIE_DURATION = 3600
+            print('> Fallback to SQLite ')
+            db.create_all()
 
-class DebugConfig(Config):
-    DEBUG = True
-    SQLALCHEMY_ECHO = True
+    @app.teardown_request
+    def shutdown_session(exception=None):
+        db.session.remove()
 
-# Load all possible configurations
-config_dict = {
-    'Production': ProductionConfig,
-    'Debug'     : DebugConfig
-}
+from apps.authentication.oauth import github_blueprint
+
+def create_app(config):
+    app = Flask(__name__)
+    app.config.from_object(config)
+    register_extensions(app)
+    register_blueprints(app)
+    app.register_blueprint(github_blueprint, url_prefix="/login")    
+    configure_database(app)
+    return app
