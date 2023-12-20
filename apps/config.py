@@ -1,54 +1,57 @@
 import os
+import random
+import string
 
-from flask import Flask
-from flask_login import LoginManager
-from flask_sqlalchemy import SQLAlchemy
-from importlib import import_module
+class Config(object):
+    basedir = os.path.abspath(os.path.dirname(__file__))
 
+    # Assets Management
+    ASSETS_ROOT = os.getenv('ASSETS_ROOT', '/static/assets')
 
-db = SQLAlchemy()
-login_manager = LoginManager()
+    # Database pooling configurations
+    SQLALCHEMY_POOL_TIMEOUT = int(os.getenv('SQLALCHEMY_POOL_TIMEOUT', 30))  # Connection timeout
+    SQLALCHEMY_POOL_SIZE = int(os.getenv('SQLALCHEMY_POOL_SIZE', 50))  # Pool size
+    SQLALCHEMY_POOL_RECYCLE = int(os.getenv('SQLALCHEMY_POOL_RECYCLE', 1800))  # Recycle connections after 1800 seconds
 
+    # Set up the App SECRET_KEY
+    SECRET_KEY = os.getenv('SECRET_KEY', ''.join(random.choice(string.ascii_lowercase) for i in range(32)))
 
-def register_extensions(app):
-    db.init_app(app)
-    login_manager.init_app(app)
+    # Social AUTH context
+    SOCIAL_AUTH_GITHUB = False
+    GITHUB_ID = os.getenv('GITHUB_ID', None)
+    GITHUB_SECRET = os.getenv('GITHUB_SECRET', None)
 
+    # Enable/Disable Github Social Login
+    if GITHUB_ID and GITHUB_SECRET:
+        SOCIAL_AUTH_GITHUB = True
 
-def register_blueprints(app):
-    for module_name in ('authentication', 'home'):
-        module = import_module('apps.{}.routes'.format(module_name))
-        app.register_blueprint(module.blueprint)
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Database Configuration
+    DB_ENGINE = os.getenv('DB_ENGINE', 'mysql+mysqlconnector')
+    DB_USERNAME = os.getenv('DB_USERNAME', 'root')
+    DB_PASS = os.getenv('DB_PASS', '1234')
+    DB_HOST = os.getenv('DB_HOST', 'localhost')
+    DB_PORT = os.getenv('DB_PORT', '3306')
+    DB_NAME = os.getenv('DB_NAME', 'simple')
 
-def configure_database(app):
+    # Construct the SQLALCHEMY_DATABASE_URI
+    SQLALCHEMY_DATABASE_URI = f'{DB_ENGINE}://{DB_USERNAME}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 
-    @app.before_first_request
-    def initialize_database():
-        try:
-            db.create_all()
-        except Exception as e:
+class ProductionConfig(Config):
+    DEBUG = False
 
-            print('> Error: DBMS Exception: ' + str(e) )
+    # Security
+    SESSION_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_DURATION = 3600
 
-            # fallback to SQLite
-            basedir = os.path.abspath(os.path.dirname(__file__))
-            app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'db.sqlite3')
+class DebugConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_ECHO = True
 
-            print('> Fallback to SQLite ')
-            db.create_all()
-
-    @app.teardown_request
-    def shutdown_session(exception=None):
-        db.session.remove()
-
-from apps.authentication.oauth import github_blueprint
-
-def create_app(config):
-    app = Flask(__name__)
-    app.config.from_object(config)
-    register_extensions(app)
-    register_blueprints(app)
-    app.register_blueprint(github_blueprint, url_prefix="/login")    
-    configure_database(app)
-    return app
+# Load all possible configurations
+config_dict = {
+    'Production': ProductionConfig,
+    'Debug': DebugConfig
+}
