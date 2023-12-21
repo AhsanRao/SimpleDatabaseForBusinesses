@@ -10,7 +10,8 @@ class Config(object):
 
     # Database pooling configurations
     SQLALCHEMY_POOL_TIMEOUT = int(os.getenv('SQLALCHEMY_POOL_TIMEOUT', 30))  # Connection timeout
-    SQLALCHEMY_POOL_SIZE = int(os.getenv('SQLALCHEMY_POOL_SIZE', 50))  # Pool size
+    SQLALCHEMY_POOL_SIZE = int(os.getenv('SQLALCHEMY_POOL_SIZE', 100))  # Pool size
+    SQLALCHEMY_POOL_OVERFLOW = int(os.getenv('SQLALCHEMY_POOL_OVERFLOW', 20))  # increase overflow
     SQLALCHEMY_POOL_RECYCLE = int(os.getenv('SQLALCHEMY_POOL_RECYCLE', 1800))  # Recycle connections after 1800 seconds
 
     # Set up the App SECRET_KEY
